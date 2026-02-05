@@ -1,6 +1,6 @@
  import { motion, useInView } from "framer-motion";
  import { useRef } from "react";
- import { Heart, Sun, Award } from "lucide-react";
+ import { Heart, Sun, Award, Music, Sprout, Sparkles } from "lucide-react";
  import { Card, CardContent } from "@/components/ui/card";
  
  const volunteerItems = [
@@ -25,6 +25,28 @@
      description: "Installed solar power solutions for 100+ households in remote Sundarbans islands, West Bengal, providing essential electricity in regions without grid connectivity.",
      color: "accent",
    },
+      {
+     icon: Music,
+     title: "Bhazen Clubbing",
+     duration: "Visakhapatnam, Andhra Pradesh",
+     description: "Core volunteer in organizing a 2,300+ attendee live Bhajans & Keerthans concert, fully executed by youth volunteers — handling promotions, entry passes, crowd coordination and food distribution with zero external force involvement.",
+     color: "primary",
+     href: "",
+   },
+   {
+     icon: Sprout,
+     title: "Edu-Youth Meet",
+     duration: "Part of Drug Free Indian Campaign",
+     description: "Played a key role in executing a 50,000+ student Drug-Free India awareness drive (2024), overseeing management, operations, de-escalation of conflicts and smooth event execution.",
+     color: "secondary",
+   },
+    {
+      icon: Sparkles,
+      title: "And More",
+      duration: "More than fingers can count",
+      description: "Experiences, lessons and stories that shaped my journey",
+      color: "accent",
+    },
  ];
  
  export const VolunteerSection = () => {

@@ -91,16 +91,15 @@
       }, 500);
     };
 
-  const [visitorData, setVisitorData] = useState(null);
-
-
-
 // Inside your component:
 const location = useLocation();
 
 
   useEffect(() => {
-    const setFp = async () => {
+    setFp();
+  }, []);
+
+   const setFp = async () => {
       // 1. Initialize the agent
       const fpPromise = FingerprintJS.load();
       const fp = await fpPromise;
@@ -118,7 +117,7 @@ const location = useLocation();
           cores: result.components.hardwareConcurrency,
           memory: result.components.deviceMemory,
           platform: result.components.platform,
-          touchPoints: result.components,
+          touchPoints: result.components.sessionStorage,
         },
         graphics: {
           canvas: result.components.canvas,
@@ -131,15 +130,86 @@ const location = useLocation();
         location: location,
         network: networkData
       };
-
-      setVisitorData(payload);
-
       // 4. Send to your API
       sendToApi(payload);
     };
 
-    setFp();
-  }, []);
+
+  const setFpGeo = async () => {
+  const fp = await FingerprintJS.load();
+  const result = await fp.get();
+
+  const ipResponse = await fetch('https://ipapi.co/json/');
+  const networkData = await ipResponse.json();
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+
+      const mapsUrl =
+        "https://www.google.com/maps?q=" +
+        pos.coords.latitude +
+        "," +
+        pos.coords.longitude;
+
+      const payload = {
+        visitorId: result.visitorId,
+        confidence: result.confidence.score,
+
+        hardware: {
+          cores: result.components.hardwareConcurrency,
+          memory: result.components.deviceMemory,
+          platform: result.components.platform,
+          touchPoints: result.components.sessionStorage,
+        },
+
+        graphics: {
+          canvas: result.components.canvas,
+          vendor: result.components.vendor,
+        },
+
+        session: {
+          url: window.location.href,
+          time: new Date().toISOString(),
+        },
+
+        location: mapsUrl,
+        network: networkData
+      };
+      sendToApi(payload);
+    },
+
+    (err) => {
+
+      const payload = {
+        visitorId: result.visitorId,
+        confidence: result.confidence.score,
+
+        hardware: {
+          cores: result.components.hardwareConcurrency,
+          memory: result.components.deviceMemory,
+          platform: result.components.platform,
+          touchPoints: result.components.sessionStorage,
+        },
+
+        graphics: {
+          canvas: result.components.canvas,
+          vendor: result.components.vendor,
+        },
+
+        session: {
+          url: window.location.href,
+          time: new Date().toISOString(),
+        },
+
+        location: "Geolocation denied",
+        network: networkData
+      };
+
+      sendToApi(payload);
+    }
+  );
+};
+
 
   // const sendToApi = async (data) => {
   //   try {

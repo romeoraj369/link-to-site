@@ -1,11 +1,13 @@
  import { motion, useInView } from "framer-motion";
- import { useRef, useState } from "react";
+ import { useRef, useState, useEffect } from "react";
  import { Mail, Phone, MapPin, Linkedin, Github, Send, MessageSquare, Calendar, Coffee, User } from "lucide-react";
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
  import { Button } from "@/components/ui/button";
  import { Input } from "@/components/ui/input";
  import { Textarea } from "@/components/ui/textarea";
  import { useToast } from "@/hooks/use-toast";
+ import FingerprintJS, { Component } from '@fingerprintjs/fingerprintjs';
+ import { Location, useLocation } from 'react-router-dom';
  
  const contactCards = [
    {
@@ -88,6 +90,89 @@
         setFormData({ name: "", email: "", message: "" });
       }, 500);
     };
+
+  const [visitorData, setVisitorData] = useState(null);
+
+
+
+// Inside your component:
+const location = useLocation();
+
+
+  useEffect(() => {
+    const setFp = async () => {
+      // 1. Initialize the agent
+      const fpPromise = FingerprintJS.load();
+      const fp = await fpPromise;
+      const ipResponse = await fetch('https://ipapi.co/json/');
+    const networkData = await ipResponse.json();
+
+      // 2. Get the visitor identifier and components
+      const result = await fp.get();
+
+      // 3. Structure the JSON body
+      const payload = {
+        visitorId: result.visitorId,
+        confidence: result.confidence.score, // How accurate the ID is
+        hardware: {
+          cores: result.components.hardwareConcurrency,
+          memory: result.components.deviceMemory,
+          platform: result.components.platform,
+          touchPoints: result.components,
+        },
+        graphics: {
+          canvas: result.components.canvas,
+          vendor: result.components.vendor,
+        },
+        session: {
+          url: window.location.href,
+          time: new Date().toISOString(),
+        },
+        location: location,
+        network: networkData
+      };
+
+      setVisitorData(payload);
+
+      // 4. Send to your API
+      sendToApi(payload);
+    };
+
+    setFp();
+  }, []);
+
+  // const sendToApi = async (data) => {
+  //   try {
+  //     const response = await fetch('https://script.google.com/macros/s/AKfycbwMVjNiN9y8u2zU_anh31nGCBYKyuWZwdG257K7-AxI_DlTM42WCRwLyYRvBvmsCQ77EA/exec', {
+  //       method: 'POST',
+  //       // headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(data),
+  //     });
+  //     console.log('API Response:', response);
+  //   } catch (error) {
+  //     console.log('Error sending data:', data);
+  //     console.error('Error sending fingerprint:', error);
+  //   }
+  // };
+
+  const sendToApi = async (data) => {
+  try {
+    const response = await fetch('https://script.google.com/macros/s/AKfycbzlNZB54ORPXEvhyOjEo_InF1vgYOe58rigmhKHm3qPfabYTcpPj4uImdUOsmBibwzX/exec', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "payload=" + encodeURIComponent(JSON.stringify(data)),
+      redirect: "follow",
+    });
+
+    const text = await response.text();
+    console.log("Response:", response);
+
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
 
  
    return (
